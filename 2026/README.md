@@ -18,3 +18,28 @@ df.drop(labels= ["ballot_id", "precinct"], axis=1, inplace=True)
 
 print(STAR(df, numwinners=numwinners)["elected"])
 ```
+
+Alternatively, you could use the [starvote](https://github.com/larryhastings/starvote) Python
+package to tabulate the results locally. The steps to tabulate the results are shown below
+
+```python
+import pandas as pd
+from starvote import election, bloc
+
+filename = "ballot-data.csv"
+# 3 members are being elected to the Governing Board in 2026
+numwinners = 3
+
+df = pd.read_csv(filename, header=0)
+
+# Ballot contains empty data if the voter didn't specifically select 0-5 stars for a candidate
+df.fillna(0, inplace=True)
+# Column 0 contains a unique Ballot ID and Column 1 is an empty "precinct" column
+df.drop(labels= ["ballot_id", "precinct"], axis=1, inplace=True)
+
+# the ballot data needs to be integers e.g. 1-5 whereas the dtype loaded by pandas is a float
+# orient="records" creates the dictionary structure that starvote expects
+ballots_dict = df.astype(int).to_dict(orient="records")
+
+election(bloc, ballots_dict, seats=numwinners, verbosity=1)
+```
